@@ -10,7 +10,10 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=cups
 PKG_VERSION:=2.1.4
-PKG_RELEASE:=1
+PKG_RELEASE:=2
+
+#PKG_BUILD_DEPENDS:=avahi 
+
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-source.tar.gz
 PKG_SOURCE_URL:=https://github.com/apple/cups/releases/download/release-$(PKG_VERSION)
@@ -39,6 +42,7 @@ define Package/cups/conffiles
 /opt/etc/cups/classes.conf
 /opt/etc/cups/cupsd.conf
 /opt/etc/cups/printers.conf
+/opt/etc/cups/cups-files.conf
 endef
 
 define Package/cups-bsd
@@ -85,7 +89,7 @@ define Package/libcups
 $(call Package/cups/Default)
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=+zlib +libpthread +libpng +libjpeg
+  DEPENDS:=+zlib +libpthread +libpng +libjpeg +libavahi-client
   TITLE:=Common UNIX Printing System - Core library
 endef
 
@@ -164,8 +168,8 @@ define Build/Configure
 		--enable-shared \
 		--enable-libusb \
 		--disable-dbus \
-		--disable-avahi \
-		--disable-dnssd \
+		--enable-avahi \
+		--enable-dnssd \
 		--disable-launchd \
 		--disable-systemd \
 		--disable-pam \
@@ -206,17 +210,32 @@ define Package/cups/install
 	$(INSTALL_DIR) $(1)/opt/share/cups
 	$(CP) $(PKG_INSTALL_DIR)/opt/share/cups/templates \
 		$(1)/opt/share/cups/
+		
 	$(INSTALL_DIR) $(1)/opt/share/cups/mime
 	$(CP) $(PKG_INSTALL_DIR)/opt/share/cups/mime/* $(1)/opt/share/cups/mime/
+	
+	$(INSTALL_DIR) $(1)/opt/share/doc/cups
+	$(CP) $(PKG_INSTALL_DIR)/opt/share/doc/cups/* $(1)/opt/share/doc/cups/
+	
+	$(INSTALL_DIR) $(1)/opt/share/cups/ipptool
+	$(CP) $(PKG_INSTALL_DIR)/opt/share/cups/ipptool/* $(1)/opt/share/cups/ipptool/
+	
+	$(INSTALL_DIR) $(1)/opt/share/cups/ppdc
+	$(CP) $(PKG_INSTALL_DIR)/opt/share/cups/ppdc/* $(1)/opt/share/cups/ppdc/
+
 	$(INSTALL_DIR) $(1)/opt/sbin
-	# overwrite default config with our own
+	# overwrite default config files with our own
 	$(CP) ./files/etc/cups/* $(1)/opt/etc/cups/
 	$(INSTALL_DIR) $(1)/opt/etc/init.d
 	$(INSTALL_BIN) ./files/S60cupsd $(1)/opt/etc/init.d/
 	$(INSTALL_BIN) \
 		$(PKG_INSTALL_DIR)/opt/sbin/{cupsctl,cupsd} \
 		$(1)/opt/sbin/
-	$(INSTALL_DIR) $(1)/opt/share/cups/{data,drv,usb}
+	# needed for cups to find usb printers per http://wiki.openwrt.org/doc/howto/cups.server
+	chmod 700 $(1)/opt/lib/cups/backend/usb
+	$(INSTALL_DIR) $(1)/opt/share/cups/{data,drv,ipptool,ppdc,usb}
+	$(CP) $(PKG_INSTALL_DIR)/opt/share/cups/usb/* $(1)/opt/share/cups/usb/
+
 	$(INSTALL_DIR) $(1)/opt/var/{cache,log,run}/cups
 	$(INSTALL_DIR) $(1)/opt/var/spool/cups/tmp
 endef
@@ -232,7 +251,7 @@ define Package/cups-client/install
 	$(INSTALL_DIR) $(1)/opt/bin
 	$(INSTALL_BIN) \
 		$(PKG_INSTALL_DIR)/opt/bin/{lp,cancel,cupstestppd,cupstestdsc} \
-		$(PKG_INSTALL_DIR)/opt/bin/{ipptool,lpoptions,lpstat} \
+		$(PKG_INSTALL_DIR)/opt/bin/{ipptool,ippfind,lpoptions,lpstat} \
 		$(1)/opt/bin/
 	$(INSTALL_DIR) $(1)/opt/sbin
 	$(INSTALL_BIN) \
