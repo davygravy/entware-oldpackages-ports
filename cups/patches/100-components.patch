@@ -4,7 +4,7 @@
    --with-operkey          set the default operator @AUTHKEY value
    --with-components       set components to build:
  			    - "all" (default) builds everything
-+			    - "embedded" builds everything except man and notifier
++			    - "embedded" builds everything except desktop and man
  			    - "core" builds libcups and ipptool
    --with-privateinclude   set path for private include files, default=none
    --with-lpdconfig        set URI for LPD config file
@@ -22,7 +22,7 @@
  		;;
  
 +	embedded)
-+		BUILDDIRS="filter backend berkeley cgi-bin monitor ppdc scheduler systemv conf data locale doc examples templates"
++		BUILDDIRS="filter backend berkeley cgi-bin monitor notifier ppdc scheduler systemv conf data locale doc examples templates"
 +		;;
 +
  	core)
@@ -34,7 +34,7 @@
  
  AC_ARG_WITH(components, [  --with-components       set components to build:
  			    - "all" (default) builds everything
-+			    - "embedded" builds everything except locale, man and notifier
++			    - "embedded" builds everything except desktop and man
  			    - "core" builds libcups and ipptool],
  	COMPONENTS="$withval")
  
@@ -43,7 +43,7 @@
  		;;
  
 +	embedded)
-+		BUILDDIRS="filter backend berkeley cgi-bin monitor ppdc scheduler systemv conf data locale doc examples templates"
++		BUILDDIRS="filter backend berkeley cgi-bin monitor notifier ppdc scheduler systemv conf data locale doc examples templates"
 +		;;
 +
  	core)
